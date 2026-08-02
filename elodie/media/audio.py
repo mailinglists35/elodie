@@ -22,5 +22,5 @@ class Audio(Video):
     #: Valid extensions for audio files.
     extensions = ('m4a',)
 
-    def __init__(self, source=None):
-        super(Audio, self).__init__(source)
+    def __init__(self, source=None, allow_metadata_writes=False):
+        super(Audio, self).__init__(source, allow_metadata_writes=allow_metadata_writes)

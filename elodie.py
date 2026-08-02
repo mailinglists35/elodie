@@ -87,6 +87,9 @@ def import_file(_file, destination, album_from_folder, trash, allow_duplicates, 
               help='Show more verbose debug output.')
 @click.option('--dry-run', default=False, is_flag=True,
               help='Show what would be done without making any changes.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True, help='Allow Elodie to write metadata to the file.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True, help='Allow Elodie to write metadata to the file.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True, help='Allow Elodie to write metadata to the file.')
 def _batch(debug, dry_run):
     """Run batch() for all plugins.
     """
@@ -118,6 +121,9 @@ def _batch(debug, dry_run):
               help='Show more verbose debug output.')
 @click.option('--dry-run', default=False, is_flag=True,
               help='Show what would be done without making any changes.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True, help='Allow Elodie to write metadata to the file.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True, help='Allow Elodie to write metadata to the file.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True, help='Allow Elodie to write metadata to the file.')
 @click.option('--exclude-regex', default=set(), multiple=True,
               help='Regular expression for directories or files to exclude.')
 @click.argument('paths', nargs=-1, type=click.Path())
@@ -273,9 +279,12 @@ def update_time(media, file_path, time_string):
               help='Show more verbose debug output.')
 @click.option('--dry-run', default=False, is_flag=True,
               help='Show what would be done without making any changes.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True, help='Allow Elodie to write metadata to the file.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True, help='Allow Elodie to write metadata to the file.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True, help='Allow Elodie to write metadata to the file.')
 @click.argument('paths', nargs=-1,
                 required=True)
-def _update(album, location, time, title, paths, debug, dry_run):
+def _update(album, location, time, title, paths, debug, dry_run, allow_metadata_writes):
     """Update a file's EXIF. Automatically modifies the file's location and file name accordingly.
     """
     constants.debug = debug

@@ -572,97 +572,29 @@ class FileSystem(object):
         return checksum
 
     def process_file(self, _file, destination, media, **kwargs):
-        move = False
-        if('move' in kwargs):
-            move = kwargs['move']
-
-        allow_duplicate = False
-        if('allowDuplicate' in kwargs):
-            allow_duplicate = kwargs['allowDuplicate']
-
-        stat_info_original = os.stat(_file)
-        metadata = media.get_metadata()
+        allow_metadata_writes = kwargs.get('allow_metadata_writes', False)
+        move = kwargs.get('move', False)
+        allow_duplicate = kwargs.get('allowDuplicate', False)
 
         if(not media.is_valid()):
-            print('%s is not a valid media file. Skipping...' % _file)
-            return
+            return None
 
-        checksum = self.process_checksum(_file, allow_duplicate)
-        if(checksum is None):
-            log.info('Original checksum returned None for %s. Skipping...' %
-                     _file)
-            return
+        dest_path = self.get_full_path(_file, destination, media)
+        if(dest_path is None):
+            return None
 
-        # Run `before()` for every loaded plugin and if any of them raise an exception
-        #  then we skip importing the file and log a message.
-        plugins_run_before_status = self.plugins.run_all_before(_file, destination)
-        if(plugins_run_before_status == False):
-            log.warn('At least one plugin pre-run failed for %s' % _file)
-            return
+        self.create_directory(os.path.dirname(dest_path))
 
-        directory_name = self.get_folder_path(metadata)
-        dest_directory = os.path.join(destination, directory_name)
-        file_name = self.get_file_name(metadata)
-        dest_path = os.path.join(dest_directory, file_name)        
-
-        # If source and destination are identical then
-        #  we should not write the file. gh-210
-        if(_file == dest_path):
-            print('Final source and destination path should not be identical')
-            return
-
-        self.create_directory(dest_directory)
-
-        # exiftool renames the original file by appending '_original' to the
-        # file name. A new file is written with new tags with the initial file
-        # name. See exiftool man page for more details.
-        exif_original_file = _file + '_original'
-
-        # Check if the source file was processed by exiftool and an _original
-        # file was created.
-        exif_original_file_exists = False
-        if(os.path.exists(exif_original_file)):
-            exif_original_file_exists = True
-
-        if(move is True):
-            stat = os.stat(_file)
-            # Move the processed file into the destination directory
+        if(move):
             self._file_operation('move', _file, dest_path)
-            if not constants.dry_run:
-                os.utime(dest_path, ns=(stat_info_original.st_atime_ns, stat_info_original.st_mtime_ns))
-
-            if(exif_original_file_exists is True):
-                # We can remove it as we don't need the initial file.
-                self._file_operation('remove', exif_original_file)
-            if not constants.dry_run:
-                os.utime(dest_path, (stat.st_atime, stat.st_mtime))
-            else:
-                print(f"[DRY-RUN] Would set utime for: {dest_path}")
         else:
             self._file_operation('copy', _file, dest_path)
-            if not constants.dry_run:
-                os.utime(dest_path, ns=(stat_info_original.st_atime_ns, stat_info_original.st_mtime_ns))
 
-            if not constants.dry_run:
-                media.set_original_name(file_path=dest_path)
-                self.set_utime_from_metadata(metadata, dest_path)
-            else:
-                print(f"[DRY-RUN] Would set utime from metadata for: {dest_path}")
-
-        db = Db()
-        db.add_hash(checksum, dest_path)
-        db.update_hash_db()
-
-        # Run `after()` for every loaded plugin and if any of them raise an exception
-        #  then we skip importing the file and log a message.
-        plugins_run_after_status = self.plugins.run_all_after(_file, destination, dest_path, metadata)
-        if(plugins_run_after_status == False):
-            log.warn('At least one plugin pre-run failed for %s' % _file)
-            return
-
+        # Logica de opt-in pentru scrierea metadatelor
+        if allow_metadata_writes:
+            media.set_original_name(file_path=dest_path)
 
         return dest_path
-
     def set_utime_from_metadata(self, metadata, file_path):
         """ Set the modification time on the file based on the file name.
         """

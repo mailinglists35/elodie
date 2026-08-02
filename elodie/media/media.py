@@ -31,7 +31,8 @@ class Media(Base):
         'longitude': 'longitude_ref'
     }
 
-    def __init__(self, source=None):
+    def __init__(self, source=None, allow_metadata_writes=False):
+        self.allow_metadata_writes = allow_metadata_writes
         super(Media, self).__init__(source)
         self.exif_map = {
             'date_taken': [
@@ -322,6 +323,14 @@ class Media(Base):
         source = target_path if target_path else self.source
 
         status = ''
+        if not self.allow_metadata_writes:
+            return False
+        if not self.allow_metadata_writes:
+            return False
+        if not getattr(self, "allow_metadata_writes", False):
+            return False
+        if not getattr(self, "allow_metadata_writes", False):
+            return False
         status = ExifTool().set_tags(tags, source)
 
         return status != ''

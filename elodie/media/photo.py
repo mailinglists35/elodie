@@ -31,8 +31,8 @@ class Photo(Media):
     #: Valid extensions for photo files.
     extensions = ('arw', 'cr2', 'dng', 'gif', 'heic', 'jpeg', 'jpg', 'nef', 'png', 'rw2')
 
-    def __init__(self, source=None):
-        super(Photo, self).__init__(source)
+    def __init__(self, source=None, allow_metadata_writes=False):
+        super(Photo, self).__init__(source, allow_metadata_writes=allow_metadata_writes)
 
         # We only want to parse EXIF once so we store it here
         self.exif = None

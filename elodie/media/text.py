@@ -27,8 +27,8 @@ class Text(Base):
     #: Valid extensions for text files.
     extensions = ('txt',)
 
-    def __init__(self, source=None):
-        super(Text, self).__init__(source)
+    def __init__(self, source=None, allow_metadata_writes=False):
+        super(Text, self).__init__(source, allow_metadata_writes=allow_metadata_writes)
         self.reset_cache()
 
     def get_album(self):

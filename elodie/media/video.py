@@ -30,8 +30,8 @@ class Video(Media):
     #: Valid extensions for video files.
     extensions = ('avi', 'm4v', 'mov', 'mp4', 'mpg', 'mpeg', '3gp', 'mts')
 
-    def __init__(self, source=None):
-        super(Video, self).__init__(source)
+    def __init__(self, source=None, allow_metadata_writes=False):
+        super(Video, self).__init__(source, allow_metadata_writes=allow_metadata_writes)
         self.exif_map['date_taken'] = [
             'QuickTime:CreationDate',
             'QuickTime:CreateDate',
