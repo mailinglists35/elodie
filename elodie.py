@@ -36,7 +36,8 @@ from elodie import constants
 
 FILESYSTEM = FileSystem()
 
-def import_file(_file, destination, album_from_folder, trash, allow_duplicates, location=None, time=None):
+
+def import_file(_file, destination, album_from_folder, trash, allow_duplicates, location=None, time=None, allow_metadata_writes=False):
     
     _file = _decode(_file)
     destination = _decode(destination)
@@ -71,7 +72,7 @@ def import_file(_file, destination, album_from_folder, trash, allow_duplicates, 
         update_time(media, _file, time)
 
     dest_path = FILESYSTEM.process_file(_file, destination,
-        media, allowDuplicate=allow_duplicates, move=False)
+        media, allowDuplicate=allow_duplicates, move=False, allow_metadata_writes=allow_metadata_writes)
     if dest_path:
         log.all('%s -> %s' % (_file, dest_path))
     if trash:
@@ -81,6 +82,7 @@ def import_file(_file, destination, album_from_folder, trash, allow_duplicates, 
             send2trash(_file)
 
     return dest_path or None
+
 
 @click.command('batch')
 @click.option('--debug', default=False, is_flag=True,
@@ -114,6 +116,8 @@ def _batch(debug, dry_run):
                                   'Vegas, NV".'))
 @click.option('--time', help=('Update the image time. Time should be in '
                               'YYYY-mm-dd hh:ii:ss or YYYY-mm-dd format.'))
+@click.option('--allow-metadata-writes', default=False, is_flag=True,
+              help='Allow Elodie to write metadata (like original name) to files. Default is False.')
 @click.option('--debug', default=False, is_flag=True,
               help='Show more verbose debug output.')
 @click.option('--dry-run', default=False, is_flag=True,
@@ -121,7 +125,7 @@ def _batch(debug, dry_run):
 @click.option('--exclude-regex', default=set(), multiple=True,
               help='Regular expression for directories or files to exclude.')
 @click.argument('paths', nargs=-1, type=click.Path())
-def _import(destination, source, file, album_from_folder, trash, allow_duplicates, location, time, debug, dry_run, exclude_regex, paths):
+def _import(destination, source, file, album_from_folder, trash, allow_duplicates, location, time, allow_metadata_writes, debug, dry_run, exclude_regex, paths):
     """Import files or directories by reading their EXIF and organizing them accordingly.
     """
     constants.debug = debug
@@ -158,7 +162,7 @@ def _import(destination, source, file, album_from_folder, trash, allow_duplicate
 
     for current_file in files:
         dest_path = import_file(current_file, destination, album_from_folder,
-                    trash, allow_duplicates, location, time)
+                    trash, allow_duplicates, location, time, allow_metadata_writes)
         if dest_path:
             result.append((current_file, True))
         elif not allow_duplicates:
@@ -267,15 +271,17 @@ def update_time(media, file_path, time_string):
                                   'should be the name of a place, like "Las '
                                   'Vegas, NV".'))
 @click.option('--time', help=('Update the image time. Time should be in '
-                              'YYYY-mm-dd hh:ii:ss or YYYY-mm-dd format.'))
+                               'YYYY-mm-dd hh:ii:ss or YYYY-mm-dd format.'))
 @click.option('--title', help='Update the image title.')
+@click.option('--allow-metadata-writes', default=False, is_flag=True,
+              help='Allow metadata writes during update. Default is False.')
 @click.option('--debug', default=False, is_flag=True,
               help='Show more verbose debug output.')
 @click.option('--dry-run', default=False, is_flag=True,
               help='Show what would be done without making any changes.')
 @click.argument('paths', nargs=-1,
                 required=True)
-def _update(album, location, time, title, paths, debug, dry_run):
+def _update(album, location, time, title, allow_metadata_writes, paths, debug, dry_run):
     """Update a file's EXIF. Automatically modifies the file's location and file name accordingly.
     """
     constants.debug = debug
@@ -362,7 +368,7 @@ def _update(album, location, time, title, paths, debug, dry_run):
                     original_base_name.replace('-%s' % original_title, ''))
 
             dest_path = FILESYSTEM.process_file(current_file, destination,
-                updated_media, move=True, allowDuplicate=True)
+                updated_media, move=True, allowDuplicate=True, allow_metadata_writes=allow_metadata_writes)
             log.info(u'%s -> %s' % (current_file, dest_path))
             log.all('{"source":"%s", "destination":"%s"}' % (current_file,
                                                                dest_path))
